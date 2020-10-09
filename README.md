@@ -1,5 +1,5 @@
 # python-selenium-container-template
-
+[![Build Status](https://travis-ci.com/popcor255/python-selenium-container.svg?branch=main)](https://travis-ci.com/popcor255/python-selenium-container)
 ## build and run with docker
 
 1. `docker build -t bot .`
