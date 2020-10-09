@@ -90,4 +90,4 @@ RUN sudo chown bot:bot /home/bot
 RUN echo "INSTALLED VERSIONS" \
   && apt-cache policy google-chrome-stable | grep Installed | sed -e "s/Installed/Chrome/" \
   && echo "  Chromedriver: `curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`"
-CMD bash /hack/scripts/start_headless.sh && python -u /app/main.py
+CMD bash /hack/scripts/start_headless.sh && python -u /app/app.py
