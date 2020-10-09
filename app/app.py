@@ -13,6 +13,7 @@ try:
   browser = webdriver.Chrome()
   browser.get(url)
   print(browser.title)
+  browser.save_screenshot("test.png")
   browser.quit()
 except Exception as e:
   print(e)
