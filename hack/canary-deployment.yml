@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crypto-scraper-script
+  name: python-script
 spec:
   selector:
     matchLabels:
-      app: crypto-scraper-script
+      app: python-script
   template:
     metadata:
       labels:
-        app: crypto-scraper-script
+        app: python-script
     spec:
       containers:
-      - name: crypto-scraper-script
-        image: localhost:5000/bot
+      - name: python-script
+        image: localhost:5000/test
         ports:
         - containerPort: 5000

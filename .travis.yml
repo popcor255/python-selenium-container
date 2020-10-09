@@ -1,0 +1,31 @@
+sudo: required
+
+services:
+  - docker
+
+language: python
+
+python:
+  - '3.8'
+
+git:
+  depth: 1
+
+install: true # skipping the default go dependencies install step
+
+before_script:
+  # Download and install kubectl
+  - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+  # Download and install KinD
+  - curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.8.1/kind-$(uname)-amd64 && chmod +x ./kind && sudo mv kind /usr/local/bin/
+  # Create a new Kubernetes cluster using KinD
+  - bash hack/scripts/dev-env.sh
+
+script:
+  # Verify that all source files are correctly formatted.
+  - docker build -t localhost:5000/test .
+  - docker run -it localhost:5000/test > out.tmp
+  - if ! grep -q Welcome to Python.org out.tmp; then exit 1; fi
+  - docker push localhost:5000/test
+  - kubectl apply --wait=true -f hack/canary-deployment.yml
+  - kubectl wait pod --timeout=600s -l app=python-script --for=condition=ready

@@ -2,7 +2,7 @@
 set -o errexit
 
 # cluster name
-
+cluster_name='kind'
 # create registry container unless it already exists
 reg_name='registry'
 reg_port='5000'
@@ -25,7 +25,7 @@ EOF
 
 # connect the registry to the cluster network
 docker network connect "kind" "${reg_name}"
-kubectx kind-${cluster_name}
+kubectl cluster-info --context kind-${cluster_name}
 # tell https://tilt.dev to use the registry
 # https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
 kubectl annotate node "${cluster_name}-control-plane" "kind.x-k8s.io/registry=localhost:${reg_port}";
