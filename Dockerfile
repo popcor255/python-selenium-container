@@ -3,10 +3,18 @@ COPY . .
 #==============
 # VNC and Xvfb
 #==============
-RUN apt-get update -y \
-  && apt-get -y install \
-    xvfb \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+RUN apt-get update -y && apt-get -y install xvfb 
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y keyboard-configuration
+RUN apt-get install -y build-essential chrpath libssl-dev libxft-dev
+RUN apt-get install -y libfreetype6 libfreetype6-dev
+RUN apt-get install -y libfontconfig1 libfontconfig1-dev
+RUN apt-get install -y unzip
+RUN apt-get install -y xserver-xorg-core
+RUN apt-get install -y x11-xkb-utils
+RUN apt-get install -y xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic libappindicator1 lsb-release
+RUN apt-get install -y fonts-liberation libatk-adaptor libgail-common libgtk-3-0 libxcomposite1 libxrandr2 xdg-utils
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
 
 #========================
 # Miscellaneous packages
@@ -38,44 +46,27 @@ RUN sudo useradd bot --shell /bin/bash --create-home \
 
 USER root
 
-#============================================
-# Google Chrome
-#============================================
-# can specify versions by CHROME_VERSION;
-#  e.g. google-chrome-stable=53.0.2785.101-1
-#       google-chrome-beta=53.0.2785.92-1
-#       google-chrome-unstable=54.0.2840.14-1
-#       latest (equivalent to google-chrome-stable)
-#       google-chrome-beta  (pull latest beta)
-#============================================
-ARG CHROME_VERSION="google-chrome-stable"
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
-  && apt-get update -qqy \
-  && apt-get -qqy install \
-    ${CHROME_VERSION:-google-chrome-stable} \
-  && rm /etc/apt/sources.list.d/google-chrome.list \
-  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+# Install Chrome
+RUN wget http://www.slimjetbrowser.com/chrome/lnx/chrome64_65.0.3325.181.deb
+RUN apt-get -f install -y --force-yes
+RUN dpkg -i chrome64_65.0.3325.181.deb
 
-#==================
-# Chrome webdriver
-#==================
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
-    mkdir -p /opt/chromedriver-$CHROMEDRIVER_VERSION && \
-    curl -sS -o /tmp/chromedriver_linux64.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
-    unzip -qq /tmp/chromedriver_linux64.zip -d /opt/chromedriver-$CHROMEDRIVER_VERSION && \
-    rm /tmp/chromedriver_linux64.zip && \
-    chmod +x /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver && \
-    ln -fs /opt/chromedriver-$CHROMEDRIVER_VERSION/chromedriver /usr/bin/chromedriver
-
-
-#=================================
-# Chrome Launch Script Modication
-#=================================
-COPY hack/scripts/chrome_launcher.sh /opt/google/chrome/google-chrome
-RUN chmod +x /opt/google/chrome/google-chrome
+# Install Chromedriver
+RUN wget -N http://chromedriver.storage.googleapis.com/2.36/chromedriver_linux64.zip
+RUN unzip -o chromedriver_linux64.zip
+RUN chmod +x chromedriver
+RUN rm -f /usr/local/share/chromedriver
+RUN rm -f /usr/local/bin/chromedriver
+RUN rm -f /usr/bin/chromedriver
+RUN mv -f chromedriver /usr/local/share/chromedriver
+RUN ln -s /usr/local/share/chromedriver /usr/local/bin/chromedriver
+RUN ln -s /usr/local/share/chromedriver /usr/bin/chromedriver
 
 RUN chown -R bot:bot /opt/selenium
+RUN mkdir /tmp/.X11-unix 
+RUN chmod 1777 /tmp/.X11-unix 
+RUN chown root /tmp/.X11-unix/
+
 
 # Following line fixes
 # https://github.com/SeleniumHQ/docker-selenium/issues/87
@@ -87,7 +78,4 @@ USER bot
 RUN sudo chown bot:bot /app
 RUN sudo chown bot:bot /home/bot
 
-RUN echo "INSTALLED VERSIONS" \
-  && apt-cache policy google-chrome-stable | grep Installed | sed -e "s/Installed/Chrome/" \
-  && echo "  Chromedriver: `curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`"
 CMD bash /hack/scripts/start_headless.sh && python -u /app/app.py

@@ -1,3 +1,3 @@
 # Activate Headless Display (Xvfb)
-Xvfb :99 -screen 0 640x480x8 -nolisten tcp &
+Xvfb -ac :99 -screen 0 1280x1024x16 &
 export DISPLAY=:99
